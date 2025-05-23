@@ -45,13 +45,14 @@ class SimulationManager:
         # Enable rendering
         p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1)
         
-        # Improved physics parameters for better grasping
-        p.setPhysicsEngineParameter(numSolverIterations=50)
+        # Improved physics parameters for better stability and collision handling
+        p.setPhysicsEngineParameter(numSolverIterations=100)  # Increased from 50
         p.setPhysicsEngineParameter(enableConeFriction=1)
-        p.setPhysicsEngineParameter(contactBreakingThreshold=0.001)
+        p.setPhysicsEngineParameter(contactBreakingThreshold=0.0001)  # Decreased for more precise contact
+        p.setPhysicsEngineParameter(allowedCcdPenetration=0.0001)  # Add continuous collision detection
         
         # Increased gravity for better stability
-        p.setGravity(0, 0, -15)
+        p.setGravity(0, 0, -20)  # Increased from -15
         p.setRealTimeSimulation(True)
         
         print("\nViewer Controls:")
@@ -69,7 +70,7 @@ class SimulationManager:
         self.jacoFingerJoints = [9, 11, 13]
         
         # Improved joint parameters for better control
-        self.jd = [1.0] * 10  # Increased joint damping for stability
+        self.jd = [2.0] * 10  # Increased joint damping for more stability
         self.rp = [0, np.pi/4, np.pi, 1.0*np.pi, 1.8*np.pi, 0*np.pi, 1.75*np.pi, 0.5*np.pi]
         
         # Initialize robot pose
@@ -80,19 +81,33 @@ class SimulationManager:
         self.pos = list(self.ls[4])
         self.orn = list(self.ls[5])
         
-        # Improve gripper friction
+        # Improve gripper friction and contact properties
         for joint in self.jacoFingerJoints:
             p.changeDynamics(self.jacoId, joint,
-                           lateralFriction=1.0,
-                           spinningFriction=1.0,
-                           rollingFriction=0.1,
+                           lateralFriction=4.0,
+                           spinningFriction=4.0,
+                           rollingFriction=4.0,
+                           contactStiffness=50000,
+                           contactDamping=10000,
                            frictionAnchor=1)
         
     def setup_workspace(self):
         """Setup workspace and objects"""
-        # Load ground plane and table
-        p.loadURDF("plane.urdf", [0,0,-.65])
+        # Load ground plane with high friction
+        plane_id = p.loadURDF("plane.urdf", [0,0,-.65])
+        p.changeDynamics(plane_id, -1,
+                        lateralFriction=3.0,
+                        spinningFriction=3.0,
+                        rollingFriction=3.0)
+                        
+        # Load table with high friction
         self.tableId = p.loadURDF("table/table.urdf", basePosition=[-0.4,0.0,-0.65])
+        p.changeDynamics(self.tableId, -1,
+                        lateralFriction=3.0,
+                        spinningFriction=3.0,
+                        rollingFriction=3.0,
+                        contactStiffness=50000,
+                        contactDamping=10000)
         
         # Define object scales and colors
         colors = [
@@ -108,7 +123,7 @@ class SimulationManager:
         self.objects = []
         
         # Parameters for rectangular blocks - increased size
-        width = 0.05   # Increased from 0.03
+        width = 0.08   # Increased from 0.03
         depth = 0.05   # Increased from 0.03
         height = 0.15  # Increased from 0.09
         
@@ -167,7 +182,7 @@ class SimulationManager:
             
             # Create the object slightly above the table to let it fall into place
             obj_id = p.createMultiBody(
-                baseMass=0.2,  # Slightly heavier for stability
+                baseMass=0.5,  # Increased mass for more stability
                 baseCollisionShapeIndex=collision_shape_id,
                 baseVisualShapeIndex=visual_shape_id,
                 basePosition=[x, y, height/2],
@@ -177,13 +192,15 @@ class SimulationManager:
             
             # Set dynamics properties for better stability
             p.changeDynamics(obj_id, -1,
-                           lateralFriction=1.0,
-                           spinningFriction=1.0,
-                           rollingFriction=0.1,
-                           restitution=0.1,
-                           contactStiffness=10000,
-                           contactDamping=100,
-                           mass=0.2)
+                           lateralFriction=5.0,
+                           spinningFriction=5.0,
+                           rollingFriction=5.0,
+                           restitution=0.01,  # Reduced restitution
+                           contactStiffness=100000,  # Significantly increased
+                           contactDamping=15000,  # Significantly increased
+                           mass=0.5,  # Increased mass
+                           linearDamping=0.5,  # Added linear damping
+                           angularDamping=0.5)  # Added angular damping
         
         # Set camera view
         p.resetDebugVisualizerCamera(
@@ -196,7 +213,7 @@ class SimulationManager:
     def setup_control_params(self):
         """Setup control parameters"""
         self.wu = [0.1, 0.5, 0.5]      # Upper workspace limits
-        self.wl = [-.66, -.5, 0.00]    # Lower workspace limits
+        self.wl = [-.66, -.5, 0.02]    # Lower workspace limits
         
         # Movement parameters
         self.dist = .002       # Translation step size
@@ -208,12 +225,20 @@ class SimulationManager:
         
         # Control states
         self.JP = list(self.rp[2:9])
-        self.fing = 0
+        self.gripper_state = "open"  # Can be "open" or "closed"
+        self.gripper_open_pos = 0.0
+        self.gripper_closed_pos = 1.2
+        self.fing = self.gripper_open_pos
         self.newPosInput = 1
         
+        # Object height for collision prevention
+        self.object_height = 0.15  # Height of objects
+        self.grasp_height_offset = 0.02  # Small offset above objects for grasping
+        self.min_z_height = self.wl[2] + self.object_height/2  # Minimum Z height to prevent collision
+        
         # Improved gripper parameters
-        self.grip_force = 100.0  # Increased gripping force
-        self.grip_speed = 2.0    # Increased gripper speed (was 0.5)
+        self.grip_force = 100.0  # Gripping force
+        self.grip_speed = 3.0   # Make gripper movement faster for discrete control
         
     def _setup_rotation_matrices(self):
         """Setup rotation matrices for orientation control"""
@@ -333,28 +358,43 @@ class SimulationManager:
         self.newPosInput = 1
         
     def _process_gripper(self, state):
-        """Process gripper commands with improved control"""
-        if state == 8:
-            self.fing = max(0, self.fing - self.dist * 10 * self.grip_speed)  # Increased speed multiplier
-        elif state == 2:
-            self.fing = min(1.35, self.fing + self.dist * 10 * self.grip_speed)  # Increased speed multiplier
+        """Process gripper commands with discrete control"""
+        if state == 8 and self.gripper_state != "open":
+            # Open gripper
+            self.gripper_state = "open"
+            self.fing = self.gripper_open_pos
+        elif state == 2 and self.gripper_state != "closed":
+            # Close gripper
+            self.gripper_state = "closed"
+            self.fing = self.gripper_closed_pos
             
-        # Apply grip force
+        # Apply grip force with discrete positions
         for joint in self.jacoFingerJoints:
             p.setJointMotorControl2(
                 self.jacoId,
                 joint,
                 p.POSITION_CONTROL,
                 targetPosition=self.fing,
-                force=self.grip_force
+                force=self.grip_force,
+                maxVelocity=self.grip_speed
             )
             
     def _apply_workspace_limits(self):
-        """Apply workspace limits to robot position"""
+        """Apply workspace limits to robot position with improved Z-axis control"""
         self.pos[0] = np.clip(self.pos[0], self.wl[0], self.wu[0])
         self.pos[1] = np.clip(self.pos[1], self.wl[1], self.wu[1])
-        self.pos[2] = np.clip(self.pos[2], self.wl[2], self.wu[2])
-        self.fing = np.clip(self.fing, 0, 1.35)
+        
+        # Improved Z-axis limits based on object height
+        if self.gripper_state == "closed":
+            # When holding an object, prevent going too low
+            self.pos[2] = np.clip(self.pos[2], 
+                                 self.min_z_height + self.grasp_height_offset, 
+                                 self.wu[2])
+        else:
+            # When gripper is open, allow going to grasping height
+            self.pos[2] = np.clip(self.pos[2], 
+                                 self.min_z_height, 
+                                 self.wu[2])
         
     def _update_robot_state(self):
         """Update robot joint positions"""
