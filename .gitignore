@@ -1,5 +1,7 @@
 venv/
 __pycache__/
+gesture_data/
+*.pkl
 *.pyc
 *.pyo
 *.pyd
