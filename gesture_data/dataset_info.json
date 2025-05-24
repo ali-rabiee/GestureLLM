@@ -1,0 +1,909 @@
+{
+  "samples": {
+    "8\\var_0_20250523_133706.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 0
+    },
+    "8\\var_1_20250523_133707.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 1
+    },
+    "8\\var_2_20250523_133708.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 2
+    },
+    "8\\var_3_20250523_133708.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 3
+    },
+    "8\\var_4_20250523_133709.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 4
+    },
+    "8\\var_5_20250523_133710.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 5
+    },
+    "8\\var_6_20250523_133710.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 6
+    },
+    "8\\var_7_20250523_133711.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 7
+    },
+    "8\\var_8_20250523_133712.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 8
+    },
+    "8\\var_9_20250523_133712.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 9
+    },
+    "8\\var_10_20250523_133713.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 10
+    },
+    "8\\var_11_20250523_133714.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 11
+    },
+    "8\\var_12_20250523_133714.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 12
+    },
+    "8\\var_13_20250523_133715.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 13
+    },
+    "8\\var_14_20250523_133715.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 14
+    },
+    "8\\var_15_20250523_133716.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 15
+    },
+    "8\\var_16_20250523_133717.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 16
+    },
+    "8\\var_17_20250523_133717.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 17
+    },
+    "8\\var_18_20250523_133718.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 18
+    },
+    "8\\var_19_20250523_133719.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 19
+    },
+    "8\\var_20_20250523_133720.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 20
+    },
+    "8\\var_21_20250523_133720.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 21
+    },
+    "8\\var_22_20250523_133721.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 22
+    },
+    "8\\var_23_20250523_133721.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 23
+    },
+    "8\\var_24_20250523_133722.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 24
+    },
+    "8\\var_25_20250523_133722.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 25
+    },
+    "8\\var_26_20250523_133723.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 26
+    },
+    "8\\var_27_20250523_133723.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 27
+    },
+    "8\\var_28_20250523_133724.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 28
+    },
+    "8\\var_29_20250523_133725.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 29
+    },
+    "2\\var_0_20250523_133730.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 0
+    },
+    "2\\var_1_20250523_133732.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 1
+    },
+    "2\\var_2_20250523_133733.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 2
+    },
+    "2\\var_3_20250523_133733.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 3
+    },
+    "2\\var_4_20250523_133734.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 4
+    },
+    "2\\var_5_20250523_133734.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 5
+    },
+    "2\\var_6_20250523_133735.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 6
+    },
+    "2\\var_7_20250523_133735.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 7
+    },
+    "2\\var_8_20250523_133736.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 8
+    },
+    "2\\var_9_20250523_133736.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 9
+    },
+    "2\\var_10_20250523_133737.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 10
+    },
+    "2\\var_11_20250523_133737.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 11
+    },
+    "2\\var_12_20250523_133738.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 12
+    },
+    "2\\var_13_20250523_133738.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 13
+    },
+    "2\\var_14_20250523_133739.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 14
+    },
+    "2\\var_15_20250523_133739.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 15
+    },
+    "2\\var_16_20250523_133740.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 16
+    },
+    "2\\var_17_20250523_133740.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 17
+    },
+    "2\\var_18_20250523_133741.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 18
+    },
+    "2\\var_19_20250523_133741.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 19
+    },
+    "2\\var_20_20250523_133742.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 20
+    },
+    "2\\var_21_20250523_133742.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 21
+    },
+    "2\\var_22_20250523_133742.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 22
+    },
+    "2\\var_23_20250523_133743.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 23
+    },
+    "2\\var_24_20250523_133743.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 24
+    },
+    "2\\var_25_20250523_133744.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 25
+    },
+    "2\\var_26_20250523_133745.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 26
+    },
+    "2\\var_27_20250523_133745.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 27
+    },
+    "2\\var_28_20250523_133746.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 28
+    },
+    "2\\var_29_20250523_133746.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 29
+    },
+    "4\\var_0_20250523_133747.npy": {
+      "action_id": 4,
+      "action_name": "Left movement",
+      "variation": 0
+    },
+    "8\\var_0_20250523_134322.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 0
+    },
+    "8\\var_1_20250523_134323.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 1
+    },
+    "8\\var_2_20250523_134323.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 2
+    },
+    "8\\var_3_20250523_134324.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 3
+    },
+    "8\\var_4_20250523_134325.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 4
+    },
+    "8\\var_5_20250523_134325.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 5
+    },
+    "8\\var_6_20250523_134326.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 6
+    },
+    "8\\var_7_20250523_134326.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 7
+    },
+    "8\\var_8_20250523_134327.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 8
+    },
+    "8\\var_9_20250523_134328.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 9
+    },
+    "8\\var_10_20250523_134328.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 10
+    },
+    "8\\var_11_20250523_134329.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 11
+    },
+    "8\\var_12_20250523_134329.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 12
+    },
+    "8\\var_13_20250523_134330.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 13
+    },
+    "8\\var_14_20250523_134330.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 14
+    },
+    "8\\var_15_20250523_134331.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 15
+    },
+    "8\\var_16_20250523_134331.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 16
+    },
+    "8\\var_17_20250523_134332.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 17
+    },
+    "8\\var_18_20250523_134332.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 18
+    },
+    "8\\var_19_20250523_134333.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 19
+    },
+    "8\\var_20_20250523_134333.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 20
+    },
+    "8\\var_21_20250523_134334.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 21
+    },
+    "8\\var_22_20250523_134334.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 22
+    },
+    "8\\var_23_20250523_134335.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 23
+    },
+    "8\\var_24_20250523_134335.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 24
+    },
+    "8\\var_25_20250523_134335.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 25
+    },
+    "8\\var_26_20250523_134336.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 26
+    },
+    "8\\var_27_20250523_134337.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 27
+    },
+    "8\\var_28_20250523_134337.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 28
+    },
+    "8\\var_29_20250523_134338.npy": {
+      "action_id": 8,
+      "action_name": "Forward movement",
+      "variation": 29
+    },
+    "2\\var_0_20250523_134350.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 0
+    },
+    "2\\var_1_20250523_134350.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 1
+    },
+    "2\\var_2_20250523_134351.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 2
+    },
+    "2\\var_3_20250523_134351.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 3
+    },
+    "2\\var_4_20250523_134352.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 4
+    },
+    "2\\var_5_20250523_134352.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 5
+    },
+    "2\\var_6_20250523_134353.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 6
+    },
+    "2\\var_7_20250523_134353.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 7
+    },
+    "2\\var_8_20250523_134354.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 8
+    },
+    "2\\var_9_20250523_134354.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 9
+    },
+    "2\\var_10_20250523_134355.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 10
+    },
+    "2\\var_11_20250523_134356.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 11
+    },
+    "2\\var_12_20250523_134356.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 12
+    },
+    "2\\var_13_20250523_134357.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 13
+    },
+    "2\\var_14_20250523_134358.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 14
+    },
+    "2\\var_15_20250523_134358.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 15
+    },
+    "2\\var_16_20250523_134359.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 16
+    },
+    "2\\var_17_20250523_134359.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 17
+    },
+    "2\\var_18_20250523_134400.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 18
+    },
+    "2\\var_19_20250523_134400.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 19
+    },
+    "2\\var_20_20250523_134401.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 20
+    },
+    "2\\var_21_20250523_134401.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 21
+    },
+    "2\\var_22_20250523_134402.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 22
+    },
+    "2\\var_23_20250523_134402.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 23
+    },
+    "2\\var_24_20250523_134403.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 24
+    },
+    "2\\var_25_20250523_134404.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 25
+    },
+    "2\\var_26_20250523_134404.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 26
+    },
+    "2\\var_27_20250523_134405.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 27
+    },
+    "2\\var_28_20250523_134405.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 28
+    },
+    "2\\var_29_20250523_134406.npy": {
+      "action_id": 2,
+      "action_name": "Backward movement",
+      "variation": 29
+    },
+    "4\\var_0_20250523_134413.npy": {
+      "action_id": 4,
+      "action_name": "Left movement",
+      "variation": 0
+    },
+    "4\\var_1_20250523_134413.npy": {
+      "action_id": 4,
+      "action_name": "Left movement",
+      "variation": 1
+    },
+    "4\\var_2_20250523_134414.npy": {
+      "action_id": 4,
+      "action_name": "Left movement",
+      "variation": 2
+    },
+    "4\\var_3_20250523_134414.npy": {
+      "action_id": 4,
+      "action_name": "Left movement",
+      "variation": 3
+    },
+    "4\\var_4_20250523_134415.npy": {
+      "action_id": 4,
+      "action_name": "Left movement",
+      "variation": 4
+    },
+    "4\\var_5_20250523_134415.npy": {
+      "action_id": 4,
+      "action_name": "Left movement",
+      "variation": 5
+    },
+    "4\\var_6_20250523_134416.npy": {
+      "action_id": 4,
+      "action_name": "Left movement",
+      "variation": 6
+    },
+    "4\\var_7_20250523_134416.npy": {
+      "action_id": 4,
+      "action_name": "Left movement",
+      "variation": 7
+    },
+    "4\\var_8_20250523_134417.npy": {
+      "action_id": 4,
+      "action_name": "Left movement",
+      "variation": 8
+    },
+    "4\\var_9_20250523_134417.npy": {
+      "action_id": 4,
+      "action_name": "Left movement",
+      "variation": 9
+    },
+    "4\\var_10_20250523_134418.npy": {
+      "action_id": 4,
+      "action_name": "Left movement",
+      "variation": 10
+    },
+    "4\\var_11_20250523_134418.npy": {
+      "action_id": 4,
+      "action_name": "Left movement",
+      "variation": 11
+    },
+    "4\\var_12_20250523_134419.npy": {
+      "action_id": 4,
+      "action_name": "Left movement",
+      "variation": 12
+    },
+    "4\\var_13_20250523_134419.npy": {
+      "action_id": 4,
+      "action_name": "Left movement",
+      "variation": 13
+    },
+    "4\\var_14_20250523_134420.npy": {
+      "action_id": 4,
+      "action_name": "Left movement",
+      "variation": 14
+    },
+    "4\\var_15_20250523_134420.npy": {
+      "action_id": 4,
+      "action_name": "Left movement",
+      "variation": 15
+    },
+    "4\\var_16_20250523_134421.npy": {
+      "action_id": 4,
+      "action_name": "Left movement",
+      "variation": 16
+    },
+    "4\\var_17_20250523_134421.npy": {
+      "action_id": 4,
+      "action_name": "Left movement",
+      "variation": 17
+    },
+    "4\\var_18_20250523_134421.npy": {
+      "action_id": 4,
+      "action_name": "Left movement",
+      "variation": 18
+    },
+    "4\\var_19_20250523_134422.npy": {
+      "action_id": 4,
+      "action_name": "Left movement",
+      "variation": 19
+    },
+    "4\\var_20_20250523_134422.npy": {
+      "action_id": 4,
+      "action_name": "Left movement",
+      "variation": 20
+    },
+    "4\\var_21_20250523_134423.npy": {
+      "action_id": 4,
+      "action_name": "Left movement",
+      "variation": 21
+    },
+    "4\\var_22_20250523_134423.npy": {
+      "action_id": 4,
+      "action_name": "Left movement",
+      "variation": 22
+    },
+    "4\\var_23_20250523_134423.npy": {
+      "action_id": 4,
+      "action_name": "Left movement",
+      "variation": 23
+    },
+    "4\\var_24_20250523_134424.npy": {
+      "action_id": 4,
+      "action_name": "Left movement",
+      "variation": 24
+    },
+    "4\\var_25_20250523_134424.npy": {
+      "action_id": 4,
+      "action_name": "Left movement",
+      "variation": 25
+    },
+    "4\\var_26_20250523_134425.npy": {
+      "action_id": 4,
+      "action_name": "Left movement",
+      "variation": 26
+    },
+    "4\\var_27_20250523_134425.npy": {
+      "action_id": 4,
+      "action_name": "Left movement",
+      "variation": 27
+    },
+    "4\\var_28_20250523_134426.npy": {
+      "action_id": 4,
+      "action_name": "Left movement",
+      "variation": 28
+    },
+    "4\\var_29_20250523_134426.npy": {
+      "action_id": 4,
+      "action_name": "Left movement",
+      "variation": 29
+    },
+    "6\\var_0_20250523_134428.npy": {
+      "action_id": 6,
+      "action_name": "Right movement",
+      "variation": 0
+    },
+    "6\\var_1_20250523_134429.npy": {
+      "action_id": 6,
+      "action_name": "Right movement",
+      "variation": 1
+    },
+    "6\\var_2_20250523_134429.npy": {
+      "action_id": 6,
+      "action_name": "Right movement",
+      "variation": 2
+    },
+    "6\\var_3_20250523_134430.npy": {
+      "action_id": 6,
+      "action_name": "Right movement",
+      "variation": 3
+    },
+    "6\\var_4_20250523_134430.npy": {
+      "action_id": 6,
+      "action_name": "Right movement",
+      "variation": 4
+    },
+    "6\\var_5_20250523_134431.npy": {
+      "action_id": 6,
+      "action_name": "Right movement",
+      "variation": 5
+    },
+    "6\\var_6_20250523_134431.npy": {
+      "action_id": 6,
+      "action_name": "Right movement",
+      "variation": 6
+    },
+    "6\\var_7_20250523_134432.npy": {
+      "action_id": 6,
+      "action_name": "Right movement",
+      "variation": 7
+    },
+    "6\\var_8_20250523_134432.npy": {
+      "action_id": 6,
+      "action_name": "Right movement",
+      "variation": 8
+    },
+    "6\\var_9_20250523_134433.npy": {
+      "action_id": 6,
+      "action_name": "Right movement",
+      "variation": 9
+    },
+    "6\\var_10_20250523_134433.npy": {
+      "action_id": 6,
+      "action_name": "Right movement",
+      "variation": 10
+    },
+    "6\\var_11_20250523_134433.npy": {
+      "action_id": 6,
+      "action_name": "Right movement",
+      "variation": 11
+    },
+    "6\\var_12_20250523_134434.npy": {
+      "action_id": 6,
+      "action_name": "Right movement",
+      "variation": 12
+    },
+    "6\\var_13_20250523_134434.npy": {
+      "action_id": 6,
+      "action_name": "Right movement",
+      "variation": 13
+    },
+    "6\\var_14_20250523_134435.npy": {
+      "action_id": 6,
+      "action_name": "Right movement",
+      "variation": 14
+    },
+    "6\\var_15_20250523_134435.npy": {
+      "action_id": 6,
+      "action_name": "Right movement",
+      "variation": 15
+    },
+    "6\\var_16_20250523_134436.npy": {
+      "action_id": 6,
+      "action_name": "Right movement",
+      "variation": 16
+    },
+    "6\\var_17_20250523_134436.npy": {
+      "action_id": 6,
+      "action_name": "Right movement",
+      "variation": 17
+    },
+    "6\\var_18_20250523_134437.npy": {
+      "action_id": 6,
+      "action_name": "Right movement",
+      "variation": 18
+    },
+    "6\\var_19_20250523_134437.npy": {
+      "action_id": 6,
+      "action_name": "Right movement",
+      "variation": 19
+    },
+    "6\\var_20_20250523_134438.npy": {
+      "action_id": 6,
+      "action_name": "Right movement",
+      "variation": 20
+    },
+    "6\\var_21_20250523_134438.npy": {
+      "action_id": 6,
+      "action_name": "Right movement",
+      "variation": 21
+    },
+    "6\\var_22_20250523_134439.npy": {
+      "action_id": 6,
+      "action_name": "Right movement",
+      "variation": 22
+    },
+    "6\\var_23_20250523_134440.npy": {
+      "action_id": 6,
+      "action_name": "Right movement",
+      "variation": 23
+    },
+    "6\\var_24_20250523_134440.npy": {
+      "action_id": 6,
+      "action_name": "Right movement",
+      "variation": 24
+    },
+    "6\\var_25_20250523_134441.npy": {
+      "action_id": 6,
+      "action_name": "Right movement",
+      "variation": 25
+    },
+    "6\\var_26_20250523_134441.npy": {
+      "action_id": 6,
+      "action_name": "Right movement",
+      "variation": 26
+    },
+    "6\\var_27_20250523_134442.npy": {
+      "action_id": 6,
+      "action_name": "Right movement",
+      "variation": 27
+    },
+    "6\\var_28_20250523_134442.npy": {
+      "action_id": 6,
+      "action_name": "Right movement",
+      "variation": 28
+    },
+    "6\\var_29_20250523_134443.npy": {
+      "action_id": 6,
+      "action_name": "Right movement",
+      "variation": 29
+    }
+  }
+}
