@@ -5,6 +5,7 @@ import os
 import json
 import time
 from datetime import datetime
+from config import USER_ID, ACTIONS
 
 class GestureDataCollector:
     def __init__(self):
@@ -18,61 +19,120 @@ class GestureDataCollector:
         self.mp_draw = mp.solutions.drawing_utils
         self.cap = cv2.VideoCapture(0)
         
-        # Actions to collect data for
-        self.actions = {
-            "Translation Mode": {
-                8: "Forward movement",
-                2: "Backward movement",
-                4: "Left movement",
-                6: "Right movement",
-                7: "Up movement",
-                1: "Down movement"
-            },
-            "Orientation Mode": {
-                8: "Rotate X+",
-                2: "Rotate X-",
-                4: "Rotate Z+",
-                6: "Rotate Z-",
-                7: "Rotate Y+",
-                1: "Rotate Y-"
-            },
-            "Gripper Mode": {
-                8: "Open gripper",
-                2: "Close gripper"
-            }
-        }
+        # Use centralized ACTIONS list
+        self.actions = ACTIONS
         
         # Create data directory
         self.base_dir = os.path.dirname(os.path.abspath(__file__))
-        self.data_dir = os.path.join(self.base_dir, "gesture_data")
-        if not os.path.exists(self.data_dir):
-            os.makedirs(self.data_dir)
-            print(f"Created data directory at: {self.data_dir}")
+        self.user_data_dir = os.path.join("gesture_data", USER_ID)
+        os.makedirs(self.user_data_dir, exist_ok=True)
+        print(f"Created data directory at: {self.user_data_dir}")
             
         # Load or create dataset info
-        self.info_file = os.path.join(self.data_dir, "dataset_info.json")
+        self.info_file = os.path.join(self.user_data_dir, "dataset_info.json")
         if os.path.exists(self.info_file):
             with open(self.info_file, 'r') as f:
                 self.dataset_info = json.load(f)
         else:
-            self.dataset_info = {"samples": {}}
+            self.dataset_info = {"samples": {}, "action_map": {}}
 
     def collect_data(self):
-        """Collect gesture data with variations"""
         print("\nWelcome to Gesture Data Collection!")
-        print(f"Data will be saved to: {self.data_dir}")
-        print("\nFor each gesture, we'll collect multiple variations.")
+        print(f"Data will be saved to: {self.user_data_dir}")
+        print("\nAll prompts and options will appear in the webcam window.")
         print("Instructions:")
-        print("- Press SPACE to start recording a variation")
-        print("- Move your hand slightly during recording to create variations")
-        print("- Press ESC to skip a gesture")
-        print("- Press Q to quit\n")
+        print("- Press 'r' to record a new gesture for the current action")
+        print("- Press 'u' to reuse a gesture from another action")
+        print("- Press 's' to skip the current action")
+        print("- Press 'q' to quit\n")
         
-        for mode, actions in self.actions.items():
-            print(f"\n=== {mode} ===")
-            for action_id, action_name in actions.items():
-                if not self._collect_gesture_variations(action_id, action_name):
+        recorded_actions = {}
+        action_idx = 0
+        total_actions = len(self.actions)
+        while action_idx < total_actions:
+            action_id, action_name = self.actions[action_idx]
+            state = 'await_choice'  # 'await_choice', 'record', 'reuse_select', 'done', 'quit'
+            reuse_selected = None
+            message = ""
+            while True:
+                success, image = self.cap.read()
+                if not success:
+                    continue
+                image = cv2.flip(image, 1)
+                overlay = image.copy()
+                y0 = 30
+                dy = 40
+                # Draw current action info
+                cv2.putText(overlay, f"Action {action_id+1}/{total_actions}: {action_name}", (10, y0), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0,255,0), 2)
+                y = y0 + dy
+                if state == 'await_choice':
+                    cv2.putText(overlay, "Press 'r' to record, 'u' to reuse, 's' to skip, 'q' to quit", (10, y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255,255,0), 2)
+                    y += dy
+                    if message:
+                        cv2.putText(overlay, message, (10, y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,0,255), 2)
+                elif state == 'reuse_select':
+                    cv2.putText(overlay, "Select action to reuse (press number key):", (10, y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255,255,0), 2)
+                    y += dy
+                    for idx, aid in enumerate(recorded_actions):
+                        aname = dict(self.actions)[aid]
+                        cv2.putText(overlay, f"{idx+1}: {aname}", (10, y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (200,200,255), 2)
+                        y += dy
+                    if message:
+                        cv2.putText(overlay, message, (10, y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,0,255), 2)
+                elif state == 'record':
+                    cv2.putText(overlay, "Recording gesture...", (10, y), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0,0,255), 2)
+                    y += dy
+                    cv2.putText(overlay, "Press SPACE to start/stop each variation", (10, y), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255,255,0), 2)
+                elif state == 'done':
+                    cv2.putText(overlay, "Done! Moving to next action...", (10, y), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0,255,0), 2)
+                elif state == 'quit':
+                    cv2.putText(overlay, "Data collection cancelled.", (10, y), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0,0,255), 2)
+                cv2.imshow('Gesture Data Collection', overlay)
+                key = cv2.waitKey(1) & 0xFF
+                if state == 'await_choice':
+                    if key == ord('r'):
+                        state = 'record'
+                        message = ""
+                    elif key == ord('u'):
+                        if not recorded_actions:
+                            message = "No gestures recorded yet. Record at least one first."
+                        else:
+                            state = 'reuse_select'
+                            message = ""
+                    elif key == ord('s'):
+                        state = 'done'
+                        message = f"Skipped: {action_name}"
+                        self.dataset_info["action_map"][str(action_id)] = None
+                    elif key == ord('q'):
+                        state = 'quit'
+                        break
+                elif state == 'reuse_select':
+                    if key in [ord(str(i+1)) for i in range(len(recorded_actions))]:
+                        idx = int(chr(key)) - 1
+                        reuse_id = list(recorded_actions.keys())[idx]
+                        self.dataset_info["action_map"][str(action_id)] = reuse_id
+                        message = f"Action {action_id} will reuse gesture from action {reuse_id}."
+                        state = 'done'
+                    elif key == ord('b'):
+                        state = 'await_choice'
+                        message = ""
+                elif state == 'record':
+                    ok = self._collect_gesture_variations(action_id, action_name)
+                    if ok:
+                        recorded_actions[action_id] = action_id
+                        self.dataset_info["action_map"][str(action_id)] = action_id
+                        message = f"Gesture recorded for action {action_id}."
+                    else:
+                        message = f"Recording cancelled for action {action_id}."
+                    state = 'done'
+                elif state == 'done':
+                    cv2.waitKey(500)
                     break
+                elif state == 'quit':
+                    break
+            if state == 'quit':
+                break
+            action_idx += 1
         
         # Save dataset info
         with open(self.info_file, 'w') as f:
@@ -91,7 +151,7 @@ class GestureDataCollector:
         recording = False
         current_frames = []
         
-        action_dir = os.path.join(self.data_dir, str(action_id))
+        action_dir = os.path.join(self.user_data_dir, str(action_id))
         if not os.path.exists(action_dir):
             os.makedirs(action_dir)
             print(f"Created directory for action {action_id}: {action_dir}")
@@ -177,7 +237,7 @@ class GestureDataCollector:
                     frame_count = 0
             elif key == 27:  # ESC key
                 print(f"Skipped: {action_name}")
-                return True
+                return False
             elif key == ord('q'):  # Q key
                 print("\nData collection process cancelled.")
                 return False
@@ -200,6 +260,13 @@ class GestureDataCollector:
         cv2.destroyAllWindows()
         print("\nData collection completed!")
         print(f"Total samples collected: {len(self.dataset_info['samples'])}")
+
+    def save_gesture_data(self, gesture_name, data):
+        # Save gesture data to user-specific directory
+        file_path = os.path.join(self.user_data_dir, f"{gesture_name}.json")
+        with open(file_path, 'w') as f:
+            json.dump(data, f)
+        print(f"Saved gesture data for '{gesture_name}' to {file_path}")
 
 if __name__ == "__main__":
     collector = GestureDataCollector()

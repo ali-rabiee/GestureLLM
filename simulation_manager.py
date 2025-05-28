@@ -284,91 +284,74 @@ class SimulationManager:
             p.resetJointState(self.jacoId, i, self.rp[i])
             
     def process_command(self, state, mode):
-        """Process control commands based on gesture input"""
+        """Process control commands based on gesture input and current mode"""
         if state == -1:
             return
-            
         baseTheta = self.JP[0]
         s = np.sin(baseTheta)
         c = np.cos(baseTheta)
-        
         n = np.sqrt(self.pos[0]**2 + self.pos[1]**2)
         dx = -self.pos[1]/n if n > 0 else 0
         dy = self.pos[0]/n if n > 0 else 0
-        
         Rrm = R.from_quat(self.orn)
         Rnew = Rrm.as_matrix()
-        
-        # Process commands based on mode
-        if mode == 0:  # Translation mode
-            self._process_translation(state, dx, dy, s, c)
-        elif mode == 1:  # Orientation mode
-            self._process_orientation(state, Rrm)
-        elif mode == 2:  # Gripper mode
-            self._process_gripper(state)
-            
-        # Apply workspace limits
+        # Only allow actions for the current mode
+        if mode == 0 and state in [0, 1, 2, 3, 4, 5]:
+            self._process_translation_flat(state, dx, dy, s, c)
+        elif mode == 1 and state in [6, 7, 8, 9, 10, 11]:
+            self._process_orientation_flat(state)
+        elif mode == 2 and state in [12, 13]:
+            self._process_gripper_flat(state)
         self._apply_workspace_limits()
-        
-        # Update robot state
         self._update_robot_state()
-        
-        # Log data if enabled
         self._log_data()
-        
-    def _process_translation(self, state, dx, dy, s, c):
-        """Process translation commands"""
-        if state == 4:
-            self.pos[0] += self.dist * dx
-            self.pos[1] += self.dist * dy
-        elif state == 6:
-            self.pos[0] -= self.dist * dx
-            self.pos[1] -= self.dist * dy
-        elif state == 8:
+
+    def _process_translation_flat(self, state, dx, dy, s, c):
+        if state == 0:  # Forward
             self.pos[0] += self.dist * c
             self.pos[1] -= self.dist * s
-        elif state == 2:
+        elif state == 1:  # Backward
             self.pos[0] -= self.dist * c
             self.pos[1] += self.dist * s
-        elif state == 7:
+        elif state == 2:  # Left
+            self.pos[0] += self.dist * dx
+            self.pos[1] += self.dist * dy
+        elif state == 3:  # Right
+            self.pos[0] -= self.dist * dx
+            self.pos[1] -= self.dist * dy
+        elif state == 4:  # Up
             self.pos[2] += self.dist
-        elif state == 1:
+        elif state == 5:  # Down
             self.pos[2] -= self.dist
         self.newPosInput = 1
-        
-    def _process_orientation(self, state, Rrm):
-        """Process orientation commands"""
-        if state == 4:
-            Rnew = Rrm.as_matrix() @ self.Rz
-        elif state == 6:
-            Rnew = Rrm.as_matrix() @ self.Rzm
-        elif state == 8:
+
+    def _process_orientation_flat(self, state):
+        Rrm = R.from_quat(self.orn)
+        if state == 6:  # X+
             Rnew = Rrm.as_matrix() @ self.Rx
-        elif state == 2:
+        elif state == 7:  # X-
             Rnew = Rrm.as_matrix() @ self.Rxm
-        elif state == 7:
+        elif state == 8:  # Y+
             Rnew = Rrm.as_matrix() @ self.Ry
-        elif state == 1:
+        elif state == 9:  # Y-
             Rnew = Rrm.as_matrix() @ self.Rym
+        elif state == 10:  # Z+
+            Rnew = Rrm.as_matrix() @ self.Rz
+        elif state == 11:  # Z-
+            Rnew = Rrm.as_matrix() @ self.Rzm
         else:
             return
-            
         Rn = R.from_matrix(Rnew)
         self.orn = Rn.as_quat()
         self.newPosInput = 1
-        
-    def _process_gripper(self, state):
-        """Process gripper commands with discrete control"""
-        if state == 8 and self.gripper_state != "open":
-            # Open gripper
+
+    def _process_gripper_flat(self, state):
+        if state == 12 and self.gripper_state != "open":
             self.gripper_state = "open"
             self.fing = self.gripper_open_pos
-        elif state == 2 and self.gripper_state != "closed":
-            # Close gripper
+        elif state == 13 and self.gripper_state != "closed":
             self.gripper_state = "closed"
             self.fing = self.gripper_closed_pos
-            
-        # Apply grip force with discrete positions
         for joint in self.jacoFingerJoints:
             p.setJointMotorControl2(
                 self.jacoId,
@@ -378,7 +361,7 @@ class SimulationManager:
                 force=self.grip_force,
                 maxVelocity=self.grip_speed
             )
-            
+
     def _apply_workspace_limits(self):
         """Apply workspace limits to robot position with improved Z-axis control"""
         self.pos[0] = np.clip(self.pos[0], self.wl[0], self.wu[0])
