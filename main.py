@@ -1,4 +1,4 @@
-from simulation_manager import SimulationManager
+from isaac_sim_manager import SimulationManager
 from hand_gesture_control import HandGestureController
 from gesture_collector import GestureDataCollector
 from gesture_model import GestureModelTrainer

@@ -4,7 +4,7 @@
 DEBUG_MODE = False
 
 # User ID or name for personalized gesture data/model
-USER_ID = "Ali3"
+USER_ID = "test"
 
 # List of all 14 actions: (action_id, description)
 ACTIONS = [
