@@ -5,4 +5,5 @@ pygame>=2.0.0
 pybullet>=3.2.0 
 torch>=1.9.0
 scikit-learn>=0.24.0
-matplotlib>=3.4.0 
+matplotlib>=3.4.0
+pybullet-object-models>=1.0.0 

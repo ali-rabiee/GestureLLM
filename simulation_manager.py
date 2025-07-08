@@ -5,11 +5,24 @@ from datetime import datetime
 import time
 import os
 import csv
+import random
 from scipy.spatial.transform import Rotation as R
+from config import RANDOM_SEED
+
+try:
+    from pybullet_object_models import ycb_objects
+    YCB_AVAILABLE = True
+except ImportError:
+    print("WARNING: pybullet-object-models not installed. Install with: pip install git+https://github.com/eleramp/pybullet-object-models.git")
+    YCB_AVAILABLE = False
 
 class SimulationManager:
     def __init__(self, enable_logging=False):
         self.enable_logging = enable_logging
+        # Set random seed for reproducible object placement
+        if RANDOM_SEED is not None:
+            random.seed(RANDOM_SEED)
+            np.random.seed(RANDOM_SEED)
         self.setup_simulation()
         self.setup_robot()
         self.setup_workspace()
@@ -81,15 +94,17 @@ class SimulationManager:
         self.pos = list(self.ls[4])
         self.orn = list(self.ls[5])
         
-        # Improve gripper friction and contact properties
+        # Make gripper fingers extremely rigid and powerful
         for joint in self.jacoFingerJoints:
             p.changeDynamics(self.jacoId, joint,
-                           lateralFriction=4.0,
-                           spinningFriction=4.0,
-                           rollingFriction=4.0,
-                           contactStiffness=50000,
-                           contactDamping=10000,
-                           frictionAnchor=1)
+                           lateralFriction=50.0,     # Extremely high friction for perfect grip
+                           spinningFriction=50.0,    # Prevent any spinning in grip
+                           rollingFriction=40.0,     # Prevent any rolling in grip
+                           contactStiffness=1000000, # Extremely stiff contact - no deformation
+                           contactDamping=200000,    # Very high damping for stability
+                           frictionAnchor=1,
+                           mass=0.1,                 # Slightly heavier fingers for more power
+                           localInertiaDiagonal=[0.001, 0.001, 0.001])  # High inertia for stability
         
     def setup_workspace(self):
         """Setup workspace and objects"""
@@ -109,60 +124,60 @@ class SimulationManager:
                         contactStiffness=50000,
                         contactDamping=10000)
         
-        # Define object scales and colors
-        colors = [
-            [1, 0, 0, 1],    # Red
-            [0, 1, 0, 1],    # Green
-            [0, 0, 1, 1],    # Blue
-            [1, 1, 0, 1],    # Yellow
-            [1, 0, 1, 1],    # Magenta
-            [0, 1, 1, 1]     # Cyan
+        # Create YCB objects
+        self.objects = []
+        self._setup_ycb_objects()
+    
+    def _setup_ycb_objects(self):
+        """Setup YCB objects on the table."""
+        if not YCB_AVAILABLE:
+            print("❌ YCB objects not available. Please install: pip install git+https://github.com/eleramp/pybullet-object-models.git")
+            return
+            
+        # Available YCB objects with their properties
+        ycb_objects_list = [
+            # {'name': 'YcbBanana', 'folder': 'YcbBanana', 'mass': 0.12, 'description': 'Yellow banana fruit'},
+            {'name': 'YcbMustardBottle', 'folder': 'YcbMustardBottle', 'mass': 0.6, 'description': 'Mustard bottle container'},
+            {'name': 'YcbTomatoSoupCan', 'folder': 'YcbTomatoSoupCan', 'mass': 0.35, 'description': 'Tomato soup can'},
+            {'name': 'YcbCrackerBox', 'folder': 'YcbCrackerBox', 'mass': 0.4, 'description': 'Cheez-It cracker box'},
+            {'name': 'YcbSugar', 'folder': 'YcbSugar', 'mass': 0.5, 'description': 'Sugar box container'},
+            {'name': 'YcbChipsCan', 'folder': 'YcbChipsCan', 'mass': 0.2, 'description': 'Pringles chips can'},
+            # {'name': 'YcbHammer', 'folder': 'YcbHammer', 'mass': 0.8, 'description': 'Claw hammer tool'},
+            # {'name': 'YcbStrawberry', 'folder': 'YcbStrawberry', 'mass': 0.02, 'description': 'Fresh strawberry fruit'},
+            # {'name': 'YcbApple', 'folder': 'YcbApple', 'mass': 0.15, 'description': 'Red apple fruit'},
+            # {'name': 'YcbPear', 'folder': 'YcbPear', 'mass': 0.18, 'description': 'Green pear fruit'},
+            {'name': 'YcbPowerDrill', 'folder': 'YcbPowerDrill', 'mass': 1.5, 'description': 'Power drill tool'},
+            # {'name': 'YcbScissors', 'folder': 'YcbScissors', 'mass': 0.1, 'description': 'Cutting scissors'},
+            {'name': 'YcbMasterChefCan', 'folder': 'YcbMasterChefCan', 'mass': 0.4, 'description': 'Master Chef can'},
+            {'name': 'YcbGelatinBox', 'folder': 'YcbGelatinBox', 'mass': 0.1, 'description': 'Gelatin dessert box'},
+            # {'name': 'YcbMediumClamp', 'folder': 'YcbMediumClamp', 'mass': 0.2, 'description': 'Medium-sized clamp tool'}
         ]
         
-        # Create standing rectangular objects
-        self.objects = []
-        
-        # Parameters for rectangular blocks - increased size
-        width = 0.08   # Increased from 0.03
-        depth = 0.05   # Increased from 0.03
-        height = 0.15  # Increased from 0.09
+        print(f"🎲 Spawning random YCB objects (seed: {RANDOM_SEED})...")
         
         # Define table boundaries for random placement
-        min_x = -0.6
-        max_x = -0.2
-        min_y = -0.3
-        max_y = 0.3
+        min_x, max_x = -0.6, -0.2
+        min_y, max_y = -0.3, 0.3
+        min_distance = 0.1
         
-        # Minimum distance between objects to prevent overlap
-        min_distance = 0.12
+        # Randomly select 5-7 objects to spawn
+        num_objects = np.random.randint(5, 8)
+        selected_objects = random.sample(ycb_objects_list, min(num_objects, len(ycb_objects_list)))
         
-        # List to store positions for collision checking
         positions = []
-        for i, color in enumerate(colors):
-            # Create visual and collision shapes for standing rectangular block
-            visual_shape_id = p.createVisualShape(
-                shapeType=p.GEOM_BOX,
-                halfExtents=[width/2, depth/2, height/2],
-                rgbaColor=color)
-            collision_shape_id = p.createCollisionShape(
-                shapeType=p.GEOM_BOX,
-                halfExtents=[width/2, depth/2, height/2])
-            
-            
-            # Try to find a valid position that doesn't overlap with other objects
-            max_attempts = 100
+        spawned_count = 0
+        
+        for obj_info in selected_objects:
+            # Try to find a valid position
             position_found = False
-            
-            for _ in range(max_attempts):
-                # Generate random position
+            for _ in range(50):  # Max attempts
                 x = np.random.uniform(min_x, max_x)
                 y = np.random.uniform(min_y, max_y)
                 
-                # Check distance from all existing objects
+                # Check distance from existing objects
                 valid_position = True
                 for pos in positions:
-                    distance = np.sqrt((x - pos[0])**2 + (y - pos[1])**2)
-                    if distance < min_distance:
+                    if np.sqrt((x - pos[0])**2 + (y - pos[1])**2) < min_distance:
                         valid_position = False
                         break
                 
@@ -172,35 +187,44 @@ class SimulationManager:
                     break
             
             if not position_found:
-                # If no valid position found, use backup position
-                x = min_x + (i * (max_x - min_x) / (len(colors) - 1))
+                # Fallback position
+                x = min_x + (spawned_count * (max_x - min_x) / num_objects)
                 y = 0
-                positions.append([x, y])
             
-            # Random rotation around vertical axis
-            rotation = np.random.uniform(0, 2 * np.pi)
-            
-            # Create the object slightly above the table to let it fall into place
-            obj_id = p.createMultiBody(
-                baseMass=0.5,  # Increased mass for more stability
-                baseCollisionShapeIndex=collision_shape_id,
-                baseVisualShapeIndex=visual_shape_id,
-                basePosition=[x, y, height/2],
-                baseOrientation=p.getQuaternionFromEuler([0, 0, rotation]))
-            
-            self.objects.append(obj_id)
-            
-            # Set dynamics properties for better stability
-            p.changeDynamics(obj_id, -1,
-                           lateralFriction=5.0,
-                           spinningFriction=5.0,
-                           rollingFriction=5.0,
-                           restitution=0.01,  # Reduced restitution
-                           contactStiffness=100000,  # Significantly increased
-                           contactDamping=15000,  # Significantly increased
-                           mass=0.5,  # Increased mass
-                           linearDamping=0.5,  # Added linear damping
-                           angularDamping=0.5)  # Added angular damping
+            # Load YCB object
+            try:
+                urdf_path = os.path.join(ycb_objects.getDataPath(), obj_info['folder'], "model.urdf")
+                rotation = np.random.uniform(0, 2 * np.pi)
+                
+                obj_id = p.loadURDF(
+                    urdf_path,
+                    basePosition=[x, y, 0.05],
+                    baseOrientation=p.getQuaternionFromEuler([0, 0, rotation]),
+                    useFixedBase=False,
+                    flags=p.URDF_USE_INERTIA_FROM_FILE
+                )
+                
+                # Set physics properties with very high friction to prevent slipping
+                p.changeDynamics(obj_id, -1,
+                               lateralFriction=30.0,    # Much higher friction for no slipping
+                               spinningFriction=30.0,   # Prevent spinning when gripped
+                               rollingFriction=15.0,    # Prevent rolling when gripped
+                               restitution=0.05,        # Less bouncy
+                               mass=obj_info['mass'],
+                               linearDamping=0.5,       # More damping for stability
+                               angularDamping=0.5,      # More angular damping
+                               contactStiffness=100000, # High contact stiffness
+                               contactDamping=20000)    # High contact damping
+                
+                self.objects.append(obj_id)
+                spawned_count += 1
+                print(f"✅ Spawned {obj_info['name']} - {obj_info['description']} at ({x:.2f}, {y:.2f})")
+                
+            except Exception as e:
+                print(f"❌ Failed to load {obj_info['name']}: {e}")
+                continue
+        
+        print(f"✅ Successfully spawned {spawned_count} YCB objects")
         
         # Set camera view
         p.resetDebugVisualizerCamera(
@@ -227,18 +251,26 @@ class SimulationManager:
         self.JP = list(self.rp[2:9])
         self.gripper_state = "open"  # Can be "open" or "closed"
         self.gripper_open_pos = 0.0
-        self.gripper_closed_pos = 1.2
+        self.gripper_closed_pos = 1.2  # Reduced to prevent finger overlap
+        self.gripper_target_pos = self.gripper_open_pos  # Smooth target tracking
         self.fing = self.gripper_open_pos
         self.newPosInput = 1
         
-        # Object height for collision prevention
-        self.object_height = 0.15  # Height of objects
-        self.grasp_height_offset = 0.02  # Small offset above objects for grasping
-        self.min_z_height = self.wl[2] + self.object_height/2  # Minimum Z height to prevent collision
+        # Smart gripper collision detection
+        self.gripper_closing_step = 0.05  # Larger steps for more forceful closing
+        self.max_gripper_force_threshold = 200.0  # Much higher threshold for powerful grip
+        self.min_finger_contacts = 2  # Require at least 2 fingers to make contact
+        self.gripper_hold_force = 5000.0  # Extremely high force when holding objects
+        self.gripper_push_force = 8000.0  # Very high force to push objects when closing
         
-        # Improved gripper parameters
-        self.grip_force = 100.0  # Gripping force
-        self.grip_speed = 3.0   # Make gripper movement faster for discrete control
+        # Object height for collision prevention (using max possible object height)
+        self.max_object_height = 0.20  # Maximum height of objects (water bottle)
+        self.grasp_height_offset = 0.02  # Small offset above objects for grasping
+        self.min_z_height = self.wl[2] + 0.02  # Minimum Z height to prevent collision with table
+        
+        # Improved gripper parameters - extremely powerful force control
+        self.grip_force = 2000.0  # High normal closing force
+        self.grip_speed = 6.0     # Faster speed for more forceful movement
         
     def _setup_rotation_matrices(self):
         """Setup rotation matrices for orientation control"""
@@ -348,19 +380,69 @@ class SimulationManager:
     def _process_gripper_flat(self, state):
         if state == 12 and self.gripper_state != "open":
             self.gripper_state = "open"
+            self.gripper_target_pos = self.gripper_open_pos
             self.fing = self.gripper_open_pos
         elif state == 13 and self.gripper_state != "closed":
-            self.gripper_state = "closed"
-            self.fing = self.gripper_closed_pos
+            self.gripper_state = "closing"  # Start closing process
+            self.gripper_target_pos = self.gripper_closed_pos
+        
+        # Intelligent gripper control with collision detection
+        if self.gripper_state == "closing":
+            self._smart_gripper_close()
+        
+        # Apply gripper control with adaptive force based on state
+        if self.gripper_state == "closed":
+            current_force = self.gripper_hold_force
+        elif self.gripper_state == "closing":
+            current_force = self.gripper_push_force  # Use very high force when closing to push objects
+        else:
+            current_force = self.grip_force
+        
         for joint in self.jacoFingerJoints:
             p.setJointMotorControl2(
                 self.jacoId,
                 joint,
                 p.POSITION_CONTROL,
                 targetPosition=self.fing,
-                force=self.grip_force,
-                maxVelocity=self.grip_speed
+                force=current_force,  # Use higher force when holding objects
+                maxVelocity=self.grip_speed,
+                positionGain=1.0,
+                velocityGain=1.0
             )
+    
+    def _smart_gripper_close(self):
+        """Intelligently close gripper with powerful force to push objects"""
+        # Count how many fingers are in contact with objects
+        finger_contacts = [False, False, False]  # Track each finger's contact
+        total_contacts = 0
+        high_force_detected = False
+        
+        # Check contact forces on finger joints
+        for i, joint in enumerate(self.jacoFingerJoints):
+            joint_state = p.getJointState(self.jacoId, joint)
+            applied_force = abs(joint_state[3])  # Joint reaction force
+            
+            if applied_force > self.max_gripper_force_threshold:
+                high_force_detected = True
+                finger_contacts[i] = True
+                total_contacts += 1
+        
+        # Check for contacts between fingers and objects
+        for obj_id in self.objects:
+            for i, finger_joint in enumerate(self.jacoFingerJoints):
+                contacts = p.getContactPoints(bodyA=self.jacoId, bodyB=obj_id, linkIndexA=finger_joint)
+                if len(contacts) > 0 and not finger_contacts[i]:
+                    finger_contacts[i] = True
+                    total_contacts += 1
+        
+        # Smart closing logic - always close with powerful force
+        if total_contacts >= self.min_finger_contacts or high_force_detected or self.fing >= self.gripper_target_pos:
+            # We have sufficient contact or reached target - close and hold
+            self.gripper_state = "closed"
+            self.fing = self.gripper_closed_pos  # Ensure full closure
+        else:
+            # Continue closing with powerful force to push objects out of the way
+            self.fing = min(self.fing + self.gripper_closing_step, self.gripper_target_pos)
 
     def _apply_workspace_limits(self):
         """Apply workspace limits to robot position with improved Z-axis control"""
@@ -371,7 +453,7 @@ class SimulationManager:
         if self.gripper_state == "closed":
             # When holding an object, prevent going too low
             self.pos[2] = np.clip(self.pos[2], 
-                                 self.min_z_height + self.grasp_height_offset, 
+                                 self.min_z_height + self.max_object_height/2 + self.grasp_height_offset, 
                                  self.wu[2])
         else:
             # When gripper is open, allow going to grasping height
@@ -402,12 +484,23 @@ class SimulationManager:
                     self.JP[i]
                 )
             
-            # Update gripper
+            # Update gripper with adaptive force for YCB objects
+            if self.gripper_state == "closed":
+                current_force = self.gripper_hold_force
+            elif self.gripper_state == "closing":
+                current_force = self.gripper_push_force  # Use very high force when closing to push objects
+            else:
+                current_force = self.grip_force
+            
             for joint in self.jacoFingerJoints:
                 p.setJointMotorControl2(
                     self.jacoId, joint,
                     p.POSITION_CONTROL,
-                    self.fing
+                    targetPosition=self.fing,
+                    force=current_force,  # Use higher force when holding objects
+                    maxVelocity=self.grip_speed,
+                    positionGain=1.0,
+                    velocityGain=1.0
                 )
                 
             self.ls = p.getLinkState(self.jacoId, self.jacoEndEffectorIndex)

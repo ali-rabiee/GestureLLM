@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Tuple
 import numpy as np
 import torch
-from scipy.spatial.transform import Rotation as R
 
 # -----------------------------------------------------------------------------
 # Isaac-Sim import logic: try the **new 4.5+ namespace first**, then fall back to
@@ -115,9 +114,6 @@ class SimulationManager:
         self._jaco = self._load_jaco_simple()
         self._ik_solver = self._setup_kinematics(self._jaco)
         
-        # Setup PyBullet-style control parameters
-        self._setup_control_params()
-        
         print("[GestureLLM] Jaco robot loaded, setting initial pose...")
         # Set initial Jaco arm joint positions to match PyBullet
         self._set_jaco_initial_pose()
@@ -159,28 +155,15 @@ class SimulationManager:
     # ------------------------------------------------------------------
     # Public API (mirrors old PyBullet manager)
     # ------------------------------------------------------------------
-    def process_command(self, state: int, mode: int) -> None:
-        """Process control commands based on gesture input and current mode (matching PyBullet exactly)."""
+    def process_command(self, ee_velocity: "np.ndarray", mode: int = 0) -> None:
+        """Process a gesture command as an end-effector velocity."""
         if not self._running:
-            return  # stub mode
-        
-        if state == -1:
             return
             
-        print(f"[GestureLLM] Processing command - State: {state}, Mode: {mode}")
+        # Apply velocity control
+        self.set_ee_velocity(ee_velocity)
         
-        # Only allow actions for the current mode (exactly like PyBullet)
-        if mode == 0 and state in [0, 1, 2, 3, 4, 5]:
-            self._process_translation_flat(state)
-        elif mode == 1 and state in [6, 7, 8, 9, 10, 11]:
-            self._process_orientation_flat(state)
-        elif mode == 2 and state in [12, 13]:
-            self._process_gripper_flat(state)
-        
-        self._apply_workspace_limits()
-        self._update_robot_state()
-        
-        # Advance the simulation
+        # Step the simulation
         self.world.step(render=True)
 
     def cleanup(self):
@@ -1027,206 +1010,3 @@ def Xform "Root"
             print(f"[GestureLLM] Error in velocity control: {e}")
             import traceback
             print(f"[GestureLLM] Full traceback: {traceback.format_exc()}")
-
-    # Control parameters (matching PyBullet simulation_manager.py)
-    def _setup_control_params(self):
-        """Setup control parameters matching PyBullet implementation"""
-        # Workspace limits (matching PyBullet)
-        self.wu = [0.1, 0.5, 0.5]      # Upper workspace limits
-        self.wl = [-.66, -.5, 0.02]    # Lower workspace limits
-        
-        # Movement parameters (matching PyBullet)
-        self.dist = .002       # Translation step size
-        self.ang = .005       # Angular step size
-        self.rot_theta = .008  # Rotation step size
-        
-        # Setup rotation matrices
-        self._setup_rotation_matrices()
-        
-        # Control states
-        self.gripper_state = "open"  # Can be "open" or "closed"
-        self.gripper_open_pos = 0.0
-        self.gripper_closed_pos = 1.2
-        
-        # Current end-effector pose (will be updated from robot state)
-        self.pos = [0.0, 0.0, 0.0]
-        self.orn = [0.0, 0.0, 0.0, 1.0]  # quaternion
-        
-        # Object height for collision prevention
-        self.object_height = 0.15  # Height of objects
-        self.grasp_height_offset = 0.02  # Small offset above objects for grasping
-        self.min_z_height = self.wl[2] + self.object_height/2  # Minimum Z height to prevent collision
-        
-        # Get initial end-effector pose
-        self._update_ee_pose_from_robot()
-        
-    def _setup_rotation_matrices(self):
-        """Setup rotation matrices for orientation control (matching PyBullet)"""
-        theta = self.rot_theta
-        # Positive rotations
-        self.Rx = np.array([[1., 0., 0.],
-                           [0., np.cos(theta), -np.sin(theta)],
-                           [0., np.sin(theta), np.cos(theta)]])
-        self.Ry = np.array([[np.cos(theta), 0., np.sin(theta)],
-                           [0., 1., 0.],
-                           [-np.sin(theta), 0., np.cos(theta)]])
-        self.Rz = np.array([[np.cos(theta), -np.sin(theta), 0.],
-                           [np.sin(theta), np.cos(theta), 0.],
-                           [0., 0., 1.]])
-        # Negative rotations
-        self.Rxm = np.array([[1., 0., 0.],
-                            [0., np.cos(-theta), -np.sin(-theta)],
-                            [0., np.sin(-theta), np.cos(-theta)]])
-        self.Rym = np.array([[np.cos(-theta), 0., np.sin(-theta)],
-                            [0., 1., 0.],
-                            [-np.sin(-theta), 0., np.cos(-theta)]])
-        self.Rzm = np.array([[np.cos(-theta), -np.sin(-theta), 0.],
-                            [np.sin(-theta), np.cos(-theta), 0.],
-                            [0., 0., 1.]])
-
-    def _update_ee_pose_from_robot(self):
-        """Update current end-effector pose from robot state"""
-        if self._jaco is None:
-            return
-        try:
-            # Get end-effector pose (you may need to adjust this based on your robot structure)
-            # For now, we'll use a simple approximation
-            joint_positions = self._jaco.get_joint_positions()
-            if joint_positions is not None:
-                # This is a simplified approach - you might need to compute forward kinematics
-                # For now, we'll maintain the pose in self.pos and self.orn
-                pass
-        except Exception as e:
-            print(f"[GestureLLM] Error updating EE pose: {e}")
-
-    def _process_translation_flat(self, state):
-        """Process translation commands (matching PyBullet implementation)"""
-        if state == 0:  # Forward
-            # Get base joint angle for coordinate transformation
-            joint_positions = self._jaco.get_joint_positions()
-            if joint_positions is not None:
-                baseTheta = joint_positions[0]  # First joint is base rotation
-                s = np.sin(baseTheta)
-                c = np.cos(baseTheta)
-                self.pos[0] += self.dist * c
-                self.pos[1] -= self.dist * s
-        elif state == 1:  # Backward
-            joint_positions = self._jaco.get_joint_positions()
-            if joint_positions is not None:
-                baseTheta = joint_positions[0]
-                s = np.sin(baseTheta)
-                c = np.cos(baseTheta)
-                self.pos[0] -= self.dist * c
-                self.pos[1] += self.dist * s
-        elif state == 2:  # Left
-            n = np.sqrt(self.pos[0]**2 + self.pos[1]**2)
-            if n > 0:
-                dx = -self.pos[1]/n
-                dy = self.pos[0]/n
-                self.pos[0] += self.dist * dx
-                self.pos[1] += self.dist * dy
-        elif state == 3:  # Right
-            n = np.sqrt(self.pos[0]**2 + self.pos[1]**2)
-            if n > 0:
-                dx = -self.pos[1]/n
-                dy = self.pos[0]/n
-                self.pos[0] -= self.dist * dx
-                self.pos[1] -= self.dist * dy
-        elif state == 4:  # Up
-            self.pos[2] += self.dist
-        elif state == 5:  # Down
-            self.pos[2] -= self.dist
-        
-        print(f"[GestureLLM] Translation command {state}, new position: {self.pos}")
-
-    def _process_orientation_flat(self, state):
-        """Process orientation commands (matching PyBullet implementation)"""
-        from scipy.spatial.transform import Rotation as R
-        
-        Rrm = R.from_quat(self.orn)
-        
-        if state == 6:  # X+
-            Rnew = Rrm.as_matrix() @ self.Rx
-        elif state == 7:  # X-
-            Rnew = Rrm.as_matrix() @ self.Rxm
-        elif state == 8:  # Y+
-            Rnew = Rrm.as_matrix() @ self.Ry
-        elif state == 9:  # Y-
-            Rnew = Rrm.as_matrix() @ self.Rym
-        elif state == 10:  # Z+
-            Rnew = Rrm.as_matrix() @ self.Rz
-        elif state == 11:  # Z-
-            Rnew = Rrm.as_matrix() @ self.Rzm
-        else:
-            return
-            
-        Rn = R.from_matrix(Rnew)
-        self.orn = Rn.as_quat()
-        
-        print(f"[GestureLLM] Orientation command {state}, new orientation: {self.orn}")
-
-    def _process_gripper_flat(self, state):
-        """Process gripper commands (matching PyBullet implementation)"""
-        if state == 12 and self.gripper_state != "open":
-            self.gripper_state = "open"
-            print("[GestureLLM] Opening gripper")
-            # TODO: Implement gripper control for Isaac Sim
-        elif state == 13 and self.gripper_state != "closed":
-            self.gripper_state = "closed"
-            print("[GestureLLM] Closing gripper")
-            # TODO: Implement gripper control for Isaac Sim
-
-    def _apply_workspace_limits(self):
-        """Apply workspace limits to robot position (matching PyBullet implementation)"""
-        self.pos[0] = np.clip(self.pos[0], self.wl[0], self.wu[0])
-        self.pos[1] = np.clip(self.pos[1], self.wl[1], self.wu[1])
-        
-        # Improved Z-axis limits based on object height
-        if self.gripper_state == "closed":
-            # When holding an object, prevent going too low
-            self.pos[2] = np.clip(self.pos[2], 
-                                 self.min_z_height + self.grasp_height_offset, 
-                                 self.wu[2])
-        else:
-            # When gripper is open, allow going to grasping height
-            self.pos[2] = np.clip(self.pos[2], 
-                                 self.min_z_height, 
-                                 self.wu[2])
-
-    def _update_robot_state(self):
-        """Update robot joint positions using IK (matching PyBullet approach)"""
-        if self._jaco is None:
-            return
-            
-        try:
-            # Use Isaac Sim's built-in IK or set positions directly
-            # For now, we'll use a simple position-based control
-            current_positions = self._jaco.get_joint_positions()
-            if current_positions is not None:
-                # This is a simplified approach - you may need proper IK
-                # For demonstration, we'll just apply small changes to joints based on desired pose
-                
-                # Simple mapping from Cartesian space to joint space (very basic)
-                # This should be replaced with proper IK when available
-                joint_changes = np.zeros(6)  # 6 arm joints
-                
-                # Map position changes to joint changes (simplified)
-                if hasattr(self, '_last_pos'):
-                    pos_change = np.array(self.pos) - np.array(self._last_pos)
-                    # Very basic mapping - should be replaced with proper Jacobian
-                    joint_changes[0] = pos_change[0] * 2.0  # Base rotation
-                    joint_changes[1] = pos_change[1] * 1.5  # Shoulder
-                    joint_changes[2] = pos_change[2] * 1.0  # Elbow
-                    
-                    # Apply changes to current joint positions
-                    new_positions = current_positions.copy()
-                    new_positions[:6] += joint_changes
-                    
-                    # Set new joint positions
-                    self._jaco.set_joint_positions(new_positions)
-                    print(f"[GestureLLM] Updated joint positions")
-                
-                self._last_pos = self.pos.copy()
-                
-        except Exception as e:
-            print(f"[GestureLLM] Error updating robot state: {e}")

@@ -4,7 +4,10 @@
 DEBUG_MODE = False
 
 # User ID or name for personalized gesture data/model
-USER_ID = "test"
+USER_ID = "Ali3"
+
+# Random seed for reproducible object spawning (set to None for random each time)
+RANDOM_SEED = 42
 
 # List of all 14 actions: (action_id, description)
 ACTIONS = [
@@ -24,4 +27,3 @@ ACTIONS = [
     (13, "Close"),
 ]
 
-# (Add other configuration parameters here as needed)  
