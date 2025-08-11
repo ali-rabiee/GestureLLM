@@ -8,6 +8,7 @@ import csv
 import random
 from scipy.spatial.transform import Rotation as R
 from config import RANDOM_SEED
+from collections import deque
 
 try:
     from pybullet_object_models import ycb_objects
@@ -28,6 +29,8 @@ class SimulationManager:
         self.setup_workspace()
         self.setup_control_params()
         self.setup_logging()
+        # Keep short action history for shared autonomy heuristics
+        self.recent_actions = deque(maxlen=240)  # ~4s at 60 Hz
         
     def setup_simulation(self):
         """Initialize PyBullet simulation"""
@@ -318,7 +321,10 @@ class SimulationManager:
     def process_command(self, state, mode):
         """Process control commands based on gesture input and current mode"""
         if state == -1:
+            # Even if idle, append idle to history for timing-based heuristics
+            self._append_action_history(state, mode)
             return
+        self._append_action_history(state, mode)
         baseTheta = self.JP[0]
         s = np.sin(baseTheta)
         c = np.cos(baseTheta)
@@ -525,3 +531,57 @@ class SimulationManager:
         if self.enable_logging and self.log_file:
             self.log_file.close()
         p.disconnect() 
+
+    # ------------------ Shared autonomy helpers ------------------
+    def _append_action_history(self, state: int, mode: int) -> None:
+        """Append an action entry to the recent history with timestamp."""
+        try:
+            self.recent_actions.append({
+                "t": time.time(),
+                "state": int(state) if state is not None else -1,
+                "mode": int(mode) if mode is not None else -1,
+            })
+        except Exception:
+            # Be resilient to any unexpected inputs
+            pass
+
+    def get_action_history(self, within_seconds=None):
+        """Return a list of recent action entries, optionally filtered by window size."""
+        if within_seconds is None:
+            return list(self.recent_actions)
+        now = time.time()
+        return [e for e in self.recent_actions if (now - e.get("t", now)) <= within_seconds]
+
+    def get_state(self):
+        """Return a snapshot of robot and environment state for shared autonomy.
+
+        Structure:
+          {
+            "robot_state": {"position": [x,y,z], "orientation": [x,y,z,w], "gripper": str},
+            "environment": {"objects": [{"id": int, "position": [x,y,z], "orientation": [x,y,z,w]}]},
+            "time": float,
+          }
+        """
+        objects_state = []
+        for obj_id in getattr(self, "objects", []) or []:
+            try:
+                pos, orn = p.getBasePositionAndOrientation(obj_id)
+                objects_state.append({
+                    "id": obj_id,
+                    "position": list(pos),
+                    "orientation": list(orn),
+                })
+            except Exception:
+                continue
+
+        return {
+            "robot_state": {
+                "position": list(self.pos),
+                "orientation": list(self.orn),
+                "gripper": self.gripper_state,
+            },
+            "environment": {
+                "objects": objects_state,
+            },
+            "time": time.time(),
+        }

@@ -4,7 +4,8 @@ from hand_gesture_control import HandGestureController
 from gui_controller import GUIController
 from gesture_collector import GestureDataCollector
 from gesture_model import GestureModelTrainer
-from config import USER_ID
+from config import USER_ID, ASSIST_MODE
+from shared_autonomy import SharedAutonomyManager
 import time
 import os
 
@@ -63,6 +64,7 @@ def main():
     # Initialize simulation manager
     print(f"\n🚀 Starting {control_mode.upper()} control mode with YCB Objects...")
     sim = SimulationManager(enable_logging=False)
+    sa = SharedAutonomyManager(sim, mode=ASSIST_MODE)
     
     # Initialize appropriate controller
     controller = None
@@ -87,8 +89,17 @@ def main():
             if control_mode == 'gesture':
                 # Get gesture input
                 state, mode = controller.get_hand_state()
-                # Process commands
-                sim.process_command(state, mode)
+                # Shared autonomy arbitration
+                final_action, prompt = sa.update(state, mode)
+                # In gesture mode, still print prompt to console (no GUI controller)
+                if prompt and prompt.get("text") and not prompt.get("shown"):
+                    print(prompt["text"])  # one-time
+                    prompt["shown"] = True
+                if final_action is not None:
+                    sim.process_command(final_action, mode)
+                else:
+                    # If a skill is active, state gets updated internally; just idle a tick
+                    pass
                 # Small sleep to prevent CPU overload
                 time.sleep(0.01)
                 
@@ -96,10 +107,28 @@ def main():
                 # Update GUI and get input
                 if not controller.update():
                     break  # GUI was closed
+                # Handle GUI prompt button responses
+                resp = controller.get_prompt_response()
+                if resp == 'accept':
+                    sa.accept()
+                    controller.clear_prompt()
+                elif resp == 'decline':
+                    sa.decline()
+                    controller.clear_prompt()
                 # Get GUI input
                 state, mode = controller.get_robot_state()
-                # Process commands
-                sim.process_command(state, mode)
+                # Shared autonomy arbitration
+                final_action, prompt = sa.update(state, mode)
+                # Show prompt inside GUI
+                if prompt and prompt.get("text"):
+                    controller.set_prompt(prompt)
+                else:
+                    controller.clear_prompt()
+                if final_action is not None:
+                    sim.process_command(final_action, mode)
+                else:
+                    # If a skill is active, it progresses internally; call update to push motors
+                    sim._update_robot_state()
                 # Small sleep to prevent CPU overload
                 time.sleep(0.01)
                 

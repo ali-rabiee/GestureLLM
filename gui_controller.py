@@ -47,6 +47,13 @@ class GUIController:
         # Clock for consistent frame rate
         self.clock = pygame.time.Clock()
         self.running = True
+
+        # Prompt UI state (for shared autonomy suggestions)
+        self.prompt = None  # dict with keys: type, text, goal_id
+        self.prompt_buttons = {}
+        self.prompt_response = None  # 'accept' | 'decline' | None
+        self.prompt_overlay_height = 110
+        self.prompt_margin = 10
         
     def setup_button_layouts(self):
         """Setup button layouts for different modes"""
@@ -174,6 +181,17 @@ class GUIController:
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:  # Left mouse button
                     mouse_pos = pygame.mouse.get_pos()
+
+                    # If a prompt is visible, prioritize prompt buttons
+                    if self.prompt and self.prompt_buttons:
+                        accept_btn = self.prompt_buttons.get('accept')
+                        decline_btn = self.prompt_buttons.get('decline')
+                        if accept_btn and accept_btn.collidepoint(mouse_pos):
+                            self.prompt_response = 'accept'
+                            return True
+                        if decline_btn and decline_btn.collidepoint(mouse_pos):
+                            self.prompt_response = 'decline'
+                            return True
                     
                     # Check mode buttons
                     for mode_button in self.mode_buttons:
@@ -232,6 +250,8 @@ class GUIController:
             self.screen.blit(action_surface, (10, 320))
         
         # Update display
+        # Draw assistant panel last (always visible)
+        self._draw_prompt_overlay()
         pygame.display.flip()
     
     def get_robot_state(self):
@@ -250,3 +270,125 @@ class GUIController:
     def cleanup(self):
         """Cleanup pygame resources"""
         pygame.quit() 
+
+    # ---------------- Prompt UI API ----------------
+    def set_prompt(self, prompt_dict):
+        """Set or update the current prompt to display."""
+        self.prompt = dict(prompt_dict) if prompt_dict else None
+        self._setup_prompt_layout()
+
+    def clear_prompt(self):
+        """Clear the current prompt and button state."""
+        self.prompt = None
+        self.prompt_buttons = {}
+        self.prompt_response = None
+
+    def get_prompt_response(self):
+        """Return and clear the last prompt response if any."""
+        resp = self.prompt_response
+        self.prompt_response = None
+        return resp
+
+    def _setup_prompt_layout(self):
+        """Compute button rects for the prompt overlay (always present)."""
+        overlay_h = self.prompt_overlay_height
+        margin = self.prompt_margin
+        btn_w, btn_h = 110, 36
+        overlay_rect = pygame.Rect(0, self.height - overlay_h, self.width, overlay_h)
+        # Buttons positioned bottom-right area
+        y = overlay_rect.bottom - margin - btn_h
+        accept_x = overlay_rect.centerx - btn_w - margin
+        decline_x = overlay_rect.centerx + margin
+        accept_rect = pygame.Rect(accept_x, y, btn_w, btn_h)
+        decline_rect = pygame.Rect(decline_x, y, btn_w, btn_h)
+        self.prompt_buttons = {
+            'accept': accept_rect,
+            'decline': decline_rect,
+            'overlay': overlay_rect,
+        }
+
+    def _wrap_text(self, text, font, max_width):
+        """Word-wrap text to lines that fit within max_width."""
+        if not text:
+            return []
+        words = text.split()
+        lines = []
+        cur = ""
+        for w in words:
+            test = w if not cur else cur + " " + w
+            if font.size(test)[0] <= max_width:
+                cur = test
+            else:
+                if cur:
+                    lines.append(cur)
+                # If single word too long, hard cut
+                while font.size(w)[0] > max_width and len(w) > 1:
+                    # Binary chop until fits
+                    lo, hi = 1, len(w)
+                    cut = 1
+                    while lo <= hi:
+                        mid = (lo + hi) // 2
+                        if font.size(w[:mid])[0] <= max_width:
+                            cut = mid
+                            lo = mid + 1
+                        else:
+                            hi = mid - 1
+                    lines.append(w[:cut])
+                    w = w[cut:]
+                cur = w
+        if cur:
+            lines.append(cur)
+        return lines
+
+    def _draw_prompt_overlay(self):
+        """Render the assistant panel with word-wrapped text and buttons."""
+        if not self.prompt_buttons:
+            self._setup_prompt_layout()
+        overlay_rect = self.prompt_buttons['overlay']
+        # Background
+        bg_col = (30, 30, 30)
+        border_col = self.colors['border']
+        pygame.draw.rect(self.screen, bg_col, overlay_rect)
+        pygame.draw.rect(self.screen, border_col, overlay_rect, 2)
+
+        # Title
+        title_surface = self.font_medium.render("Assistant", True, (255, 255, 255))
+        self.screen.blit(title_surface, (overlay_rect.left + self.prompt_margin, overlay_rect.top + 6))
+
+        # Message text (wrapped)
+        text = str(self.prompt.get('text', '')) if self.prompt else "No suggestions."
+        max_text_width = overlay_rect.width - 2 * self.prompt_margin
+        lines = self._wrap_text(text, self.font_small, max_text_width)
+        # Compute how many lines can fit above buttons
+        btn_area_top = self.prompt_buttons['accept'].top - 6
+        available_h = btn_area_top - (overlay_rect.top + 28)
+        line_h = self.font_small.get_height()
+        max_lines = max(1, available_h // line_h)
+        if len(lines) > max_lines:
+            lines = lines[:max_lines]
+            # Add ellipsis to last line if truncated
+            if not lines[-1].endswith("..."):
+                ell = "..."
+                # Ensure fits
+                while self.font_small.size(lines[-1] + ell)[0] > max_text_width and len(lines[-1]) > 0:
+                    lines[-1] = lines[-1][:-1]
+                lines[-1] += ell
+        y = overlay_rect.top + 28
+        for ln in lines:
+            surf = self.font_small.render(ln, True, (230, 230, 230))
+            self.screen.blit(surf, (overlay_rect.left + self.prompt_margin, y))
+            y += line_h
+
+        # Buttons (only active if a prompt is present)
+        mouse_pos = pygame.mouse.get_pos()
+        for key, label in [('accept', 'Accept'), ('decline', 'Decline')]:
+            rect = self.prompt_buttons[key]
+            is_hover = rect.collidepoint(mouse_pos)
+            enabled = bool(self.prompt)
+            base_col = self.colors['mode_button'] if enabled else (80, 80, 80)
+            color = self.colors['mode_button_active'] if (enabled and is_hover) else base_col
+            pygame.draw.rect(self.screen, color, rect)
+            pygame.draw.rect(self.screen, border_col, rect, 2)
+            txt_col = self.colors['text'] if enabled else (180, 180, 180)
+            txt = self.font_medium.render(label, True, txt_col)
+            self.screen.blit(txt, txt.get_rect(center=rect.center))
